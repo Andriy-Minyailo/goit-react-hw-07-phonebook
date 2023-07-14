@@ -1,10 +1,14 @@
 import { useState } from 'react';
 import css from './FormAddContacts.module.css';
-import { useDispatch } from 'react-redux';
-import { addContact } from 'components/redux/conactSlice';
+import { useDispatch, useSelector } from 'react-redux';
+import { nanoid } from '@reduxjs/toolkit';
+import { addContact } from '../../redux/operations';
+import { getContacts } from '../../redux/selectors';
 
 export const FormAddContacts = () => {
   const dispatch = useDispatch();
+  const currentContacts = useSelector(getContacts);
+
   const [state, setState] = useState({
     name: '',
     number: '',
@@ -16,11 +20,29 @@ export const FormAddContacts = () => {
 
   const submitAddContact = evt => {
     evt.preventDefault();
-    if (!state.name.trim() || !state.number.trim()) { 
-    alert('Please enter the correct values') 
-    return
-  }
-    dispatch(addContact(state.name, state.number));
+    const { name, number } = evt.target.elements;
+    if (!state.name.trim() || !state.number.trim()) {
+      alert('Please enter the correct values');
+      return;
+    }
+    const newContact = {
+      id: nanoid(),
+      name: state.name,
+      number: state.number,
+    };
+
+    const сheckRepetition = currentContacts.find(
+      ({ contact }) =>
+        contact.name.toLowerCase() === name.value.toLowerCase() ||
+        contact.number === number.value
+    );
+
+    сheckRepetition
+      ? alert(
+          `${name.value} or  number: ${number.value} is already in contacts.`
+        )
+      : dispatch(addContact(newContact));
+
     setState({ name: '', number: '' });
   };
 
@@ -58,5 +80,3 @@ export const FormAddContacts = () => {
     </>
   );
 };
-
-

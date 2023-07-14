@@ -1,34 +1,32 @@
 import css from './ListContacts.module.css';
 import { ElemListContact } from 'components/ElemListContact/ElemListContact';
-import { useSelector } from 'react-redux';
+
+import { useSelector, useDispatch } from 'react-redux';
+import { useEffect } from 'react';
+import { fetchContacts } from '../../redux/operations';
+import {
+  getIsLoading,
+  getError,
+  contactsToRender,
+} from '../../redux/selectors';
 
 export const ListContacts = () => {
- 
-  const contacts = useSelector(state => state.contacts.contacts);
-   const filter = useSelector(state => state.filter.filter);
+  const isLoading = useSelector(getIsLoading);
+  const error = useSelector(getError);
+  const contacts = useSelector(contactsToRender);
+  const dispatch = useDispatch();
 
-  const contactsRender = filter.trim()
-    ? contacts.filter(({ name }) => {
-        return name.toLowerCase().includes(filter.toLowerCase().trim());
-      })
-    : contacts;
+  useEffect(() => {
+    dispatch(fetchContacts());
+  }, [dispatch]);
 
   return (
-    
-      <ul className={css.lists}>
-        {contactsRender.map(el => {
-          return (
-            <ElemListContact
-              key={el.id}
-              id={el.id}
-              name={el.name}
-              number={el.number}
-      
-            />
-          );
-        })}
-      </ul>
-    
+    <ul className={css.lists}>
+      {isLoading && <p>Loading...</p>}
+      {error && <p>Error: {error}</p>}
+      {contacts.map(({ id, contact: { name, number } }) => {
+        return <ElemListContact key={id} id={id} name={name} number={number} />;
+      })}
+    </ul>
   );
 };
-
